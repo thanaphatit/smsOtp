@@ -34,7 +34,6 @@ COPY --from=builder /app/dist ./dist
 COPY .sequelizerc ./
 COPY src/config/config.js ./src/config/config.js
 COPY src/migrations/ ./src/migrations/
-COPY src/seeders/ ./src/seeders/
 
 EXPOSE 3000
 
