@@ -29,7 +29,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: thanaphatit/smsotp-backend:latest
+          tags: mitsibleasing/smsotp-backend:latest
 
       # Frontend
       - name: Build Frontend
@@ -38,4 +38,4 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: thanaphatit/smsotp-frontend:latest
+          tags: mitsibleasing/smsotp-frontend:latest
