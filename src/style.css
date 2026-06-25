@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen;
+    font-family: 'Sarabun', 'Prompt', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .otp-input {
+    @apply w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl 
+           transition-all duration-200 outline-none
+           focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200
+           border-gray-300 text-gray-800 bg-white;
+  }
+
+  .otp-input.error {
+    @apply border-red-400 focus:border-red-500 focus:ring-red-200;
+  }
+
+  .otp-input.filled {
+    @apply border-indigo-400 bg-indigo-50;
+  }
+}

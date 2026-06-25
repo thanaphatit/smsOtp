@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # MySQL Database
+  # ============================================================
+  mysql:
+    image: mysql:8.0
+    container_name: sms-otp-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_123
+      MYSQL_DATABASE: sms_otp
+      MYSQL_USER: sms_otp_user
+      MYSQL_PASSWORD: sms_otp_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================
+  # Backend API Server (Express + Sequelize)
+  # ============================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sms-otp-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: sms_otp
+      DB_USER: sms_otp_user
+      DB_PASSWORD: sms_otp_pass
+      OTP_APP_KEY: 1867052542194637
+      OTP_APP_SECRET: 6a2130b8df3cd
+      CORS_ORIGIN: "*"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================
+  # Nginx Web Server (reverse proxy + static files)
+  # ============================================================
+  nginx:
+    image: nginx:alpine
+    container_name: sms-otp-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - frontend_dist:/usr/share/nginx/html:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================
+  # Frontend Builder (builds Vue app, then exits)
+  # ============================================================
+  frontend-builder:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sms-otp-frontend-builder
+    volumes:
+      - frontend_dist:/app/dist
+    # This service builds and exits - no need to keep running
+
+volumes:
+  mysql_data:
+  frontend_dist:
