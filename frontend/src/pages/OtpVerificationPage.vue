@@ -80,7 +80,7 @@
                 :value="displayPhone"
                 type="tel"
                 inputmode="numeric"
-                maxlength="9"
+                maxlength="10"
                 placeholder="XX-XXX-XXXX"
                 :class="[
                   'w-full pl-14 pr-4 py-3.5 border-2 rounded-xl text-gray-800 text-lg font-medium',
