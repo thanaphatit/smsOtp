@@ -9,8 +9,9 @@
 import type { ApiError } from '@/types';
 
 /** Backend API base URL (empty = same origin) */
-// const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
-const API_BASE = 'http://178.128.52.104:3000';
+// const API_BASE = 'http://178.128.52.104:3000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+
 
 // ========================================================================
 // Mock Mode Helpers (for standalone dev without backend)
