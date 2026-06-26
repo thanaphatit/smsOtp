@@ -127,7 +127,7 @@
           </button>
 
           <div class="mt-3 text-center">
-            <p class="text-xs text-gray-400">ส่งผ่าน Bling Innovation OTP Service</p>
+            <p class="text-xs text-gray-400">กรุณาตรวจสอบรหัส OTP ที่โทรศัพท์ของคุณ</p>
           </div>
         </div>
 
@@ -235,7 +235,7 @@
     </div>
 
     <p class="text-center text-xs text-gray-400 mt-2">
-      หากมีข้อสงสัย กรุณาติดต่อฝ่ายบริการลูกค้า
+      หากมีข้อสงสัย กรุณาติดต่อฝ่ายบริการลูกค้า 02-743-8787
     </p>
   </div>
 </template>
