@@ -16,12 +16,15 @@ COPY . .
 RUN npm run build
 
 # ============================================================
-# Stage 2: Just hold the built assets
+# Stage 2: Serve the built assets with Nginx
 # ============================================================
-FROM alpine:3.19 AS production
+FROM nginx:alpine AS production
 
-# We only need the dist output
-COPY --from=builder /app/dist /app/dist
+# นำไฟล์ที่ Build เสร็จแล้วจาก Stage 1 มาใส่ในโฟลเดอร์สำหรับให้บริการเว็บของ Nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# This container just holds the built assets
-VOLUME /app/dist
+# เปิดพอร์ต 80 ภายใน Container
+EXPOSE 80
+
+# สั่งให้ Nginx รันค้างไว้เบื้องหลัง
+CMD ["nginx", "-g", "daemon off;"]
