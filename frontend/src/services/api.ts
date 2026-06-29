@@ -8,9 +8,8 @@
 
 import type { ApiError } from '@/types';
 
-/** Backend API base URL (empty = same origin) */
-// const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
-const API_BASE = 'https://esign.mitsib.co.th';
+/** Backend API base URL (empty = same origin — works in production via Nginx proxy) */
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 
 

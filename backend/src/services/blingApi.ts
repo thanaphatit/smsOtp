@@ -65,11 +65,14 @@ export async function requestOtp(phoneNumber: string): Promise<RequestOtpResult>
   };
 }
 
-export async function verifyOtp(token: string, pin: string): Promise<VerifyOtpResult> {
+export async function verifyOtp(token: string, pin: string, phoneNumber?: string): Promise<VerifyOtpResult> {
   const params = new URLSearchParams();
   params.append('cmd', 'verify_otp');
   params.append('token', token);
   params.append('pin', pin);
+  if (phoneNumber) {
+    params.append('mobile', formatPhoneForApi(phoneNumber));
+  }
 
   const response = await fetch(BLING_API_URL, {
     method: 'POST',

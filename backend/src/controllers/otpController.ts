@@ -99,7 +99,7 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
 
   try {
     // Call Bling OTP API to verify
-    await blingApi.verifyOtp(token, pin);
+    await blingApi.verifyOtp(token, pin, phone_number);
 
     // Log successful verification
     await OtpLog.create({
