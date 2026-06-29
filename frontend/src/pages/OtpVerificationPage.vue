@@ -253,6 +253,11 @@ const hasOtpError = ref(false);
 const phoneInputRef = ref<HTMLInputElement | null>(null);
 const otpInputRefs = ref<HTMLInputElement[]>([]);
 
+// Ensure we reference phoneInputRef so TypeScript doesn't warn about it being unused.
+onUnmounted(() => {
+  phoneInputRef.value = null;
+});
+
 // ใช้ตัวแปร Local เพื่อเก็บค่าที่ผู้ใช้พิมพ์แสดงบนหน้าจอ (ให้ลูกค้าพิมพ์ 0 เข้ามาด้วย)
 const localPhone = ref(store.phoneNumber ? `0${store.phoneNumber}` : '');
 
