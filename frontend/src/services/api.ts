@@ -87,8 +87,24 @@ export async function apiRequestOtp(phoneNumber: string): Promise<{ token: strin
   const result = await response.json();
 
   if (!response.ok || !result.success) {
+    const rawMessage = result.message || '';
+    let thaiMessage = 'เกิดข้อผิดพลาดในการส่งรหัส OTP';
+
+    // Map English API errors to Thai messages
+    if (/invalid.*parameter|invalid.*token|invalid.*otp|invalid.*phone|contact support/i.test(rawMessage)) {
+      thaiMessage = 'รหัส OTP ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
+    } else if (/expired/i.test(rawMessage)) {
+      thaiMessage = 'รหัส OTP หมดอายุแล้ว กรุณาขอรหัสใหม่';
+    } else if (/not.*found|not.*exist/i.test(rawMessage)) {
+      thaiMessage = 'ไม่พบข้อมูลเบอร์โทรศัพท์นี้ในระบบ';
+    } else if (/rate.*limit|too.*many|try.*later/i.test(rawMessage)) {
+      thaiMessage = 'คุณขอรหัส OTP บ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่อีกครั้ง';
+    } else if (rawMessage) {
+      thaiMessage = rawMessage;
+    }
+
     const error: ApiError = {
-      message: result.message || 'เกิดข้อผิดพลาดในการส่งรหัส OTP',
+      message: thaiMessage,
       statusCode: response.status,
     };
     throw error;
@@ -119,8 +135,24 @@ export async function apiVerifyOtp(token: string, pin: string, phoneNumber?: str
   const result = await response.json();
 
   if (!response.ok || !result.success) {
+    const rawMessage = result.message || '';
+    let thaiMessage = 'รหัส OTP ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
+
+    // Map English API errors to Thai messages
+    if (/invalid.*parameter|invalid.*token|invalid.*otp|invalid.*pin|contact support/i.test(rawMessage)) {
+      thaiMessage = 'รหัส OTP ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
+    } else if (/expired/i.test(rawMessage)) {
+      thaiMessage = 'รหัส OTP หมดอายุแล้ว กรุณาขอรหัสใหม่';
+    } else if (/not.*found|not.*exist/i.test(rawMessage)) {
+      thaiMessage = 'ไม่พบข้อมูลการยืนยันตัวตน กรุณาติดต่อเจ้าหน้าที่';
+    } else if (/rate.*limit|too.*many|try.*later/i.test(rawMessage)) {
+      thaiMessage = 'คุณยืนยันรหัส OTP ผิดหลายครั้ง กรุณารอสักครู่แล้วลองใหม่อีกครั้ง';
+    } else if (rawMessage) {
+      thaiMessage = rawMessage;
+    }
+
     const error: ApiError = {
-      message: result.message || 'รหัส OTP ไม่ถูกต้อง',
+      message: thaiMessage,
       statusCode: response.status,
     };
     throw error;

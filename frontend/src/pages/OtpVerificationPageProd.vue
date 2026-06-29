@@ -1,6 +1,8 @@
 <template>
   <div class="w-full max-w-md mx-auto px-4">
+    <!-- Card Container -->
     <div class="bg-white rounded-2xl shadow-xl p-8 md:p-10">
+      <!-- Header -->
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
           <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,6 +16,7 @@
         </p>
       </div>
 
+      <!-- Error Message Banner -->
       <Transition
         enter-active-class="transition-all duration-300 ease-out"
         enter-from-class="opacity-0 -translate-y-2"
@@ -42,6 +45,7 @@
         </div>
       </Transition>
 
+      <!-- Success Message Banner -->
       <Transition
         enter-active-class="transition-all duration-300 ease-out"
         enter-from-class="opacity-0 -translate-y-2"
@@ -61,26 +65,26 @@
         </div>
       </Transition>
 
+      <!-- Step 1: Phone Number Input -->
       <Transition mode="out-in" name="fade-slide">
         <div v-if="store.currentStep === OtpStep.PHONE_INPUT" key="phone-step">
           <div class="mb-6">
             <label for="phone-number" class="block text-sm font-medium text-gray-700 mb-2">เบอร์โทรศัพท์มือถือ</label>
-          <div class="relative">
+            <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                <span class="text-gray-500 text-lg font-medium">+66</span>
+                <span class="text-gray-500 font-medium text-sm">+66</span>
               </div>
               <input
                 id="phone-number"
                 ref="phoneInputRef"
-                :value="localPhone"
+                :value="displayPhone"
                 type="tel"
                 inputmode="numeric"
                 maxlength="10"
-                placeholder="8XXXXXXXX"
+                placeholder="XX-XXX-XXXX"
                 :class="[
-                  'w-full px-4 py-3.5 border-2 rounded-xl text-gray-800 text-lg font-medium',
+                  'w-full pl-14 pr-4 py-3.5 border-2 rounded-xl text-gray-800 text-lg font-medium',
                   'transition-all duration-200 outline-none',
-                  'pl-[4.5rem]',
                   'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200',
                   store.phoneError
                     ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
@@ -127,28 +131,28 @@
           </div>
         </div>
 
+        <!-- Step 2: OTP Input -->
         <div v-else-if="store.currentStep === OtpStep.OTP_INPUT" key="otp-step">
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-3 text-center">กรอกรหัส OTP</label>
-                <div class="flex items-center justify-center gap-2 md:gap-3">
-                    <input
-                        v-for="(_, index) in store.OTP_LENGTH"
-                        :key="index"
-                        :ref="(el: any) => setOtpInputRef(el as HTMLInputElement, index)"
-                        :value="store.otpCode[index]"
-                        type="text"
-                        inputmode="numeric"
-                        :maxlength="store.OTP_LENGTH"
-                        autocomplete="one-time-code"
-                        :class="['otp-input', store.otpCode[index] ? 'filled' : '', hasOtpError ? 'error' : '']"
-                        :disabled="store.isVerifyingOtp"
-                        @input="onOtpInput(index, $event)"
-                        @keydown.delete="onOtpDelete(index)"
-                        @keydown.backspace="onOtpDelete(index)"
-                        @paste.prevent="onOtpPaste"
-                    />
-                </div>
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3 text-center">กรอกรหัส OTP</label>
+            <div class="flex items-center justify-center gap-2 md:gap-3">
+              <input
+                v-for="(_, index) in store.OTP_LENGTH"
+                :key="index"
+                :ref="(el: any) => setOtpInputRef(el as HTMLInputElement, index)"
+                :value="store.otpCode[index]"
+                type="text"
+                inputmode="numeric"
+                maxlength="1"
+                :class="['otp-input', store.otpCode[index] ? 'filled' : '', hasOtpError ? 'error' : '']"
+                :disabled="store.isVerifyingOtp"
+                @input="onOtpInput(index, $event)"
+                @keydown.delete="onOtpDelete(index)"
+                @keydown.backspace="onOtpDelete(index)"
+                @paste.prevent="onOtpPaste"
+              />
             </div>
+          </div>
 
           <div class="text-center mb-4 space-y-1">
             <p class="text-xs text-gray-400">
@@ -208,6 +212,7 @@
           </div>
         </div>
 
+        <!-- Step 3: Success -->
         <div v-else-if="store.currentStep === OtpStep.SUCCESS" key="success-step">
           <div class="text-center py-4">
             <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
@@ -242,7 +247,7 @@
  * OTP Verification page using Pinia store for state management.
  * Calls backend API proxy (not directly to Bling) to bypass CORS.
  */
-import { ref, onUnmounted, nextTick, watch } from 'vue';
+import { ref, computed, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useOtpStore, OtpStep } from '@/stores/otp';
 
@@ -253,30 +258,18 @@ const hasOtpError = ref(false);
 const phoneInputRef = ref<HTMLInputElement | null>(null);
 const otpInputRefs = ref<HTMLInputElement[]>([]);
 
-// ใช้ตัวแปร Local เพื่อเก็บค่าที่ผู้ใช้พิมพ์แสดงบนหน้าจอ (ให้ลูกค้าพิมพ์ 0 เข้ามาด้วย)
-const localPhone = ref(store.phoneNumber ? `0${store.phoneNumber}` : '');
-
-// คอยดักจับกรณีที่ข้อมูลใน Store ถูกลบหรือรีเซ็ต
-watch(() => store.phoneNumber, (newVal) => {
-  if (!newVal) {
-    localPhone.value = '';
-  }
+// Display phone with leading 0
+const displayPhone = computed(() => {
+  return store.phoneNumber ? `0${store.phoneNumber}` : '';
 });
 
 function onPhoneInputHandler(event: Event) {
   const input = event.target as HTMLInputElement;
   let digits = input.value.replace(/\D/g, '');
-
-  // 1. อัปเดตข้อมูลบนหน้าจอให้เป็นตัวเลขตามที่ผู้ใช้พิมพ์ (รวมเลข 0) ทันที
-  localPhone.value = digits;
-  input.value = digits; 
-
-  // 2. แอบตัดเลข 0 ตัวหน้าออก ก่อนส่งลง Store และยิงไปที่ API
-  let storeDigits = digits;
-  if (storeDigits.startsWith('0')) {
-    storeDigits = storeDigits.substring(1);
+  if (digits.startsWith('0')) {
+    digits = digits.substring(1);
   }
-  store.onPhoneInput(storeDigits);
+  store.onPhoneInput(digits);
 }
 
 function setOtpInputRef(el: HTMLInputElement, index: number): void {
@@ -298,29 +291,6 @@ function onOtpInput(index: number, event: Event): void {
   const input = event.target as HTMLInputElement;
   const value = input.value.replace(/\D/g, '');
 
-  // 🌟 ดักจับกรณี Auto-fill จาก SMS (มือถือจะส่งเลขมาให้ครบทุกหลักพร้อมกัน)
-  if (value.length > 1) {
-    const digits = value.split('').slice(0, store.OTP_LENGTH);
-    
-    // กระจายตัวเลขไปใส่ในแต่ละช่องให้ถูกต้อง
-    digits.forEach((digit: string, i: number) => {
-      store.otpCode[i] = digit;
-    });
-    
-    hasOtpError.value = false;
-    store.clearError();
-
-    // โฟกัสไปที่ช่องสุดท้าย และกดยืนยันอัตโนมัติเลย!
-    nextTick(() => {
-      otpInputRefs.value[store.OTP_LENGTH - 1]?.focus();
-      if (store.isOtpComplete) {
-        handleVerifyOtp();
-      }
-    });
-    return;
-  }
-
-  // กรณีพิมพ์ทีละตัวด้วยตัวเองปกติ
   if (value) {
     store.otpCode[index] = value.charAt(0);
     hasOtpError.value = false;
@@ -385,6 +355,65 @@ function goHome(): void {
   store.resetFlow();
   router.push('/');
 }
+
+/**
+ * Request OTP from SMS using WebOTP API (navigator.credentials.get)
+ * Automatically fills OTP fields when SMS is received.
+ * Only works on HTTPS or localhost, supported on Android Chrome & Samsung Internet.
+ */
+async function requestSmsOtp(): Promise<void> {
+  // Check if WebOTP API is supported
+  if (!navigator.credentials || !('otp' in navigator)) {
+    console.log('WebOTP API not supported on this browser');
+    return;
+  }
+
+  try {
+    const otpResult = await navigator.credentials.get({
+      otp: { transport: ['sms'] },
+      // Signal allows aborting the request later if needed
+    } as any);
+
+    if (!otpResult) return;
+
+    // Parse the OTP code - type assertion since the result type may vary
+    const otpData = otpResult as any;
+    const otpCode = otpData?.code ?? '';
+
+    if (otpCode && /^\d+$/.test(otpCode)) {
+      // Fill OTP fields
+      const digits = otpCode.replace(/\D/g, '').split('').slice(0, store.OTP_LENGTH);
+      digits.forEach((digit: string, index: number) => {
+        store.otpCode[index] = digit;
+      });
+
+      // Focus on last filled input
+      const focusIndex = digits.length - 1;
+      await nextTick();
+      otpInputRefs.value[focusIndex]?.focus();
+
+      // Auto-verify if all digits filled
+      await nextTick();
+      if (store.isOtpComplete) {
+        await handleVerifyOtp();
+      }
+    }
+  } catch (error: any) {
+    // User cancelled or API not available - silently fail
+    // User can still type OTP manually
+    console.log('WebOTP API request cancelled or failed:', error?.message ?? error);
+  }
+}
+
+// Watch for step changes and trigger SMS OTP auto-fill
+watch(() => store.currentStep, (newStep) => {
+  if (newStep === OtpStep.OTP_INPUT) {
+    // Delay a bit to let UI render, then attempt SMS OTP auto-fill
+    setTimeout(() => {
+      requestSmsOtp();
+    }, 500);
+  }
+});
 
 onUnmounted(() => {
   store.stopCountdown();
